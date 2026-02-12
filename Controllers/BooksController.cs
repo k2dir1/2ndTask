@@ -42,7 +42,8 @@ using VH_2ND_TASK.Data;
             _db.Books.Add(book);
             await _db.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetById), new { id = book.Id }, book);
+        return Ok(book);
+
         }
 
         [Authorize]
