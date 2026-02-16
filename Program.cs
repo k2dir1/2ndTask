@@ -4,7 +4,6 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using VH_2ND_TASK.Data;
 using VH_2ND_TASK.Middleware;
-using VH_2ND_TASK.Middleware.Model;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -63,8 +62,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddAuthorization();
 
 
-builder.Services.AddScoped<ICurrentUser, CurrentUser>();
-builder.Services.AddScoped<AuthenticatedUserMiddleware>(); //middlewear kismi
+
+builder.Services.AddScoped<ErrorHandlingMiddleware>();
 
 var app = builder.Build();
 
@@ -76,9 +75,10 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseMiddleware<ErrorHandlingMiddleware>();
 
 app.UseAuthentication();
-app.UseMiddleware<AuthenticatedUserMiddleware>(); //jwtden alma
+
 app.UseAuthorization();
 
 app.MapControllers();

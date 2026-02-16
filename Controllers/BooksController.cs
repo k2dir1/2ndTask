@@ -3,8 +3,9 @@
     using Microsoft.EntityFrameworkCore;
 using VH_2ND_TASK.Data;
     using VH_2ND_TASK.Models;
+using VH_2ND_TASK.Middleware.Exceptions;
 
-    namespace VH_2ND_TASK.Controllers;
+namespace VH_2ND_TASK.Controllers;
 
     [ApiController]
     [Route("api/[controller]")]
@@ -16,22 +17,25 @@ using VH_2ND_TASK.Data;
         public record PatchBookRequest(string? Title, string? Author);   
         public BooksController(AppDbContext db) => _db = db;
 
-        [AllowAnonymous]
+        [AllowAnonymous] 
         [HttpGet]
-        public async Task<List<Book>> GetAll() =>
-            await _db.Books.AsNoTracking().ToListAsync();
-
-        [AllowAnonymous]
+        public async Task<List<Book>> GetAll(CancellationToken cancellationToken) =>
+            await _db.Books.AsNoTracking().ToListAsync(cancellationToken);
+        
+        [AllowAnonymous]      
         [HttpGet("{id:int}")]
         public async Task<ActionResult<Book>> GetById(int id)
         {
             var book = await _db.Books.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id);
-            return book is null ? NotFound() : Ok(book);
+        var item = 0;
+        var avg = 2/item;
+        return book is null ? NotFound() : Ok(book);
+              
         }
 
-        [Authorize]
+        [Authorize] 
         [HttpPost]
-        public async Task<ActionResult<Book>> Create([FromBody] CreateBookRequest dto)
+        public async Task<ActionResult<Book>> Create([FromBody] CreateBookRequest dto, CancellationToken cancellationToken)
         {
             var book = new Book
             {
@@ -40,7 +44,7 @@ using VH_2ND_TASK.Data;
             };
 
             _db.Books.Add(book);
-            await _db.SaveChangesAsync();
+            await _db.SaveChangesAsync(cancellationToken);
 
         return Ok(book);
 
@@ -52,11 +56,13 @@ using VH_2ND_TASK.Data;
         {
             if (string.IsNullOrWhiteSpace(dto.Title) || string.IsNullOrWhiteSpace(dto.Author))
                 return BadRequest("Tum fieldler doldurulmali");
+;
 
             var book = await _db.Books.FirstOrDefaultAsync(x => x.Id == id);
-            if (book is null) return NotFound();
+            if (book is null)
+                throw new NotFoundException($"Book with id {id} not found");
 
-            book.Title = dto.Title.Trim();
+        book.Title = dto.Title.Trim();
             book.Author = dto.Author.Trim();
 
             await _db.SaveChangesAsync();
@@ -69,9 +75,10 @@ using VH_2ND_TASK.Data;
         public async Task<IActionResult> Patch(int id, [FromBody] PatchBookRequest dto)
         {
             var book = await _db.Books.FirstOrDefaultAsync(x => x.Id == id);
-            if (book is null) return NotFound();
+        if (book == null)
+            throw new KeyNotFoundException("Book not found");
 
-            var changed = false;
+        var changed = false;
 
             if (!string.IsNullOrWhiteSpace(dto.Title))
             {
@@ -93,17 +100,11 @@ using VH_2ND_TASK.Data;
             return Ok(book); 
         }
 
-        [Authorize]
-        [HttpDelete("{id:int}")]
-        public async Task<IActionResult> Delete(int id)
+    
+        [AllowAnonymous]
+        [HttpGet("test-error")]
+        public IActionResult TestError()
         {
-            var book = await _db.Books.FirstOrDefaultAsync(x => x.Id == id);
-            if (book is null) return NotFound();
-
-            _db.Books.Remove(book);
-            await _db.SaveChangesAsync();
-
-            return Ok(new { message = "Deleted this book : ", book });
+            throw new Exception("database exploded");
         }
-
-    }
+}
