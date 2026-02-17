@@ -5,6 +5,7 @@ using System.Text;
 using VH_2ND_TASK.Data;
 using VH_2ND_TASK.Middleware;
 using Microsoft.OpenApi.Models;
+using VH_2ND_TASK.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -43,9 +44,12 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.AddDbContext<AppDbContext>(opt =>
     opt.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+builder.Services.AddScoped<IJwtService, JwtService>();
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
+
         var jwt = builder.Configuration.GetSection("Jwt");
         options.TokenValidationParameters = new TokenValidationParameters
         {
@@ -56,10 +60,13 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidIssuer = jwt["Issuer"],
             ValidAudience = jwt["Audience"], //jwt config
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt["Key"]!))
+             
         };
+
     });
 
 builder.Services.AddAuthorization();
+
 
 
 
