@@ -1,4 +1,4 @@
-﻿namespace VH_2ND_TASK.Models;
+﻿namespace VH_2ND_TASK.Application.Entities;
 
 public class RefreshToken
 {

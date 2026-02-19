@@ -1,0 +1,13 @@
+{
+  "profiles": {
+    "VH_2ND_TASK.Api": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "launchUrl": "swagger",
+      "applicationUrl": "https://localhost:61326;http://localhost:61327"
+    }
+  }
+}
