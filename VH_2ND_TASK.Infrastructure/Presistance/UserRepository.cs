@@ -8,18 +8,37 @@ namespace VH_2ND_TASK.Infrastructure.Persistence;
 public class UserRepository : IUserRepository
 {
     private readonly AppDbContext _db;
+    public UserRepository(AppDbContext db)
+    {
+        _db = db;
+        Console.WriteLine($"Repo DbContext: {_db.GetHashCode()}");
+    }
+    public async Task<bool> EmailExistsAsync(string email, CancellationToken ct)
+    {
+        var exists = await _db.Users
+            .AnyAsync(x => x.Email == email, ct);
 
-    public UserRepository(AppDbContext db) => _db = db;
+        return exists;
+    }
 
-    public Task<bool> EmailExistsAsync(string email, CancellationToken ct)
-        => _db.Users.AnyAsync(x => x.Email == email, ct);
+    public async Task<User?> GetByEmailAsync(string email, CancellationToken ct)
+    {
+        var user = await _db.Users
+            .FirstOrDefaultAsync(x => x.Email == email, ct);
 
-    public Task<User?> GetByEmailAsync(string email, CancellationToken ct)
-        => _db.Users.FirstOrDefaultAsync(x => x.Email == email, ct);
+        return user;
+    }
 
-    public Task<User?> GetByIdAsync(int id, CancellationToken ct)
-        => _db.Users.FirstOrDefaultAsync(x => x.Id == id, ct);
+    public async Task<User?> GetByIdAsync(int id, CancellationToken ct)
+    {
+        var user = await _db.Users
+            .FirstOrDefaultAsync(x => x.Id == id, ct);
 
-    public Task AddAsync(User user, CancellationToken ct)
-        => _db.Users.AddAsync(user, ct).AsTask();
+        return user;
+    }
+
+    public async Task AddAsync(User user, CancellationToken ct)
+    {
+        await _db.Users.AddAsync(user, ct);
+    }
 }
