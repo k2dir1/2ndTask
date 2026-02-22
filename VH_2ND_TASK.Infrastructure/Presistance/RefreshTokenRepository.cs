@@ -9,36 +9,19 @@ public class RefreshTokenRepository : IRefreshTokenRepository
 {
     private readonly AppDbContext _db;
 
-    public RefreshTokenRepository(AppDbContext db)
-    {
-        _db = db;
-        Console.WriteLine($"RefreshRepo DbContext: {_db.GetHashCode()}");
-    }
+    public RefreshTokenRepository(AppDbContext db) => _db = db;
 
-    public async Task<RefreshToken?> GetByUserIdAsync(int userId, CancellationToken ct)
-    {
-        var token = await _db.RefreshTokens
-            .FirstOrDefaultAsync(x => x.UserId == userId, ct);
+    public Task<RefreshToken?> GetByUserIdAsync(int userId, CancellationToken ct)
+        => _db.RefreshTokens.FirstOrDefaultAsync(x => x.UserId == userId, ct);
 
-        return token;
-    }
-
-    public async Task<RefreshToken?> GetByHashAsync(string tokenHash, CancellationToken ct)
-    {
-        var token = await _db.RefreshTokens
-            .Include(x => x.User)
+    public Task<RefreshToken?> GetByHashAsync(string tokenHash, CancellationToken ct)
+        => _db.RefreshTokens
+            .Include(x => x.User) // so Application can do CreateToken(stored.User)
             .FirstOrDefaultAsync(x => x.TokenHash == tokenHash, ct);
 
-        return token;
-    }
-
-    public async Task AddAsync(RefreshToken token, CancellationToken ct)
-    {
-        await _db.RefreshTokens.AddAsync(token, ct);
-    }
+    public Task AddAsync(RefreshToken token, CancellationToken ct)
+        => _db.RefreshTokens.AddAsync(token, ct).AsTask();
 
     public void Remove(RefreshToken token)
-    {
-        _db.RefreshTokens.Remove(token);
-    }
+        => _db.RefreshTokens.Remove(token);
 }
